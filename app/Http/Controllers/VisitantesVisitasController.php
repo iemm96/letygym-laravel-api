@@ -3,83 +3,76 @@
 namespace App\Http\Controllers;
 
 use App\VisitantesVisitas;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VisitantesVisitasController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
+    public static $rules = array(
+        'nombre' => 'required',
+    );
+
+    const MODEL = 'App\VisitantesVisitas';
+    const TABLE = 'visitantes_visitas AS vv';
+    use RestActions;
+
+    public function deleteRecord($id) {
+        $m = self::MODEL;
+        $modelSocio = 'App\Socios';
+
+        if(is_null($result = $m::find($id))){
+            return $this->respond('not_found');
+        }
+
+        //Delete Socio
+        $modelSocio::destroy($result->id_socio);
+
+        //Destroy record
+        $m::destroy($id);
+
+        return $this->respond('removed');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+    public function getRecords() {
+
+        $result = DB::table(self::TABLE)
+            ->join('socios AS s','vv.id_socio', '=','s.id')
+            ->select(
+                DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
+                's.nombre',
+                'vv.id',
+                'vv.id_socio',
+                'vv.visitas'
+            )
+            ->where('s.bVisitante','=','1')
+            ->get()->toArray();
+
+        return $this->respond('done', $result);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+    public function storeRecord(Request $request){
+        $m = self::MODEL;
+
+        $modelSocio = 'App\Socios';
+
+        $arraySocio = array(
+            'nombre' => $request->get('nombre'),
+            'apellidoPaterno' => $request->get('apellidoPaterno'),
+            'apellidoMaterno' => $request->get('apellidoMaterno'),
+            'bVisitante' => 1,
+        );
+
+        //Store Socio
+        $idSocio = $modelSocio::create($arraySocio)->id;
+
+        $arrayRecord = array(
+            'id_socio' => $idSocio,
+            'visitas' => 0,
+        );
+
+        return $this->respond('created', $m::create($arrayRecord));
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\VisitantesVisitas  $visitantesVisitas
-     * @return \Illuminate\Http\Response
-     */
-    public function show(VisitantesVisitas $visitantesVisitas)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\VisitantesVisitas  $visitantesVisitas
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(VisitantesVisitas $visitantesVisitas)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\VisitantesVisitas  $visitantesVisitas
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, VisitantesVisitas $visitantesVisitas)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\VisitantesVisitas  $visitantesVisitas
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(VisitantesVisitas $visitantesVisitas)
-    {
-        //
-    }
 }

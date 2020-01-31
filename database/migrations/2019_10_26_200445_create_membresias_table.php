@@ -15,6 +15,9 @@ class CreateMembresiasTable extends Migration
     {
         Schema::create('membresias', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->char('membresia');
+            $table->char('duracion');
+            $table->char('precio');
             $table->timestamps();
         });
     }

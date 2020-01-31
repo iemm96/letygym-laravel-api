@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAsistenciasTable extends Migration
+class CreateSociosMembresiasTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,12 @@ class CreateAsistenciasTable extends Migration
      */
     public function up()
     {
-        Schema::create('asistencias', function (Blueprint $table) {
+        Schema::create('socios_membresias', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('id_socio');
-            $table->dateTime('fechaHora');
+            $table->integer('id_tipoMembresia');
+            $table->integer('fecha_fin');
+            $table->integer('fecha_inicio');
             $table->timestamps();
         });
     }
@@ -28,6 +30,6 @@ class CreateAsistenciasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('asistencias');
+        Schema::dropIfExists('socios_membresias');
     }
 }

@@ -3,83 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Socios;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SociosController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+    const MODEL = 'App\Socios';
+    use RestActions;
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+    public function storeRecord(Request $request){
+        $m = self::MODEL;
+        $this->validate($request, $m::$rules);
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $datosSocio = array(
+            'nombre' => $request->get('nombre'),
+            'apellidoPaterno' => $request->get('apellidoPaterno'),
+            'apellidoMaterno' => $request->get('apellidoMaterno'),
+        );
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Socios  $socios
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Socios $socios)
-    {
-        //
-    }
+        $idSocio = $m::create($datosSocio)->id;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Socios  $socios
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Socios $socios)
-    {
-        //
-    }
+        $m = 'App\SociosMembresias';
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Socios  $socios
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Socios $socios)
-    {
-        //
-    }
+        $datosSocioMembresia = array(
+            'id_socio' => $idSocio,
+            'id_membresia' => $request->get('id_membresia'),
+            'bActiva' => $request->get('bActiva'),
+            'fecha_inicio' => $request->get('fecha_inicio'),
+            'fecha_fin' => $request->get('fecha_fin')
+        );
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Socios  $socios
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Socios $socios)
-    {
-        //
+        //Format Time
+        $aTimeStart = explode('T',$datosSocioMembresia['fecha_inicio']);
+        $datosSocioMembresia['fecha_inicio'] = $aTimeStart[0];
+
+        $aTimeEnd = explode('T',$datosSocioMembresia['fecha_fin']);
+        $datosSocioMembresia['fecha_fin'] = $aTimeEnd[0];
+
+        return $this->respond('created', $m::create($datosSocioMembresia));
     }
 }

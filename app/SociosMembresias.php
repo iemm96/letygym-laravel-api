@@ -4,11 +4,10 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Asistencia extends Model
+class SociosMembresias extends Model
 {
-    protected $table = 'asistencias';
+    protected $table = 'socios_membresias';
     protected $guarded =['id'];
     public static $rules = array(
-
     );
 }

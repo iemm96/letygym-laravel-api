@@ -3,83 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Asistencia;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AsistenciaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+    const MODEL = 'App\Asistencia';
+    const TABLE = 'asistencias as a';
+    use RestActions;
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function getRecords()
     {
-        //
-    }
+        $m = self::MODEL;
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $result = DB::table(self::TABLE)
+            ->join('socios AS s','a.id_socio', '=','s.id')
+            ->select(
+                DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
+                's.nombre',
+                'a.fechaHora'
+            )
+            ->get()->toArray();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Asistencia  $asistencia
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Asistencia $asistencia)
-    {
-        //
-    }
+        if($result) {
+            //iterate results to convert datetime to human
+            foreach ($result as &$item) {
+                $item->fechaHora = Carbon::parse($item->fechaHora)->format('m/d/Y H:i');
+            }
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Asistencia  $asistencia
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Asistencia $asistencia)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Asistencia  $asistencia
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Asistencia $asistencia)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Asistencia  $asistencia
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Asistencia $asistencia)
-    {
-        //
+        return $this->respond('done', $result);
     }
 }

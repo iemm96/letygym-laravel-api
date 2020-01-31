@@ -15,6 +15,7 @@ class CreateStatusSociosTable extends Migration
     {
         Schema::create('status_socios', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->char('status');
             $table->timestamps();
         });
     }

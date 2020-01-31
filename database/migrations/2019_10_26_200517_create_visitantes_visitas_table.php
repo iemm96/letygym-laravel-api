@@ -15,6 +15,8 @@ class CreateVisitantesVisitasTable extends Migration
     {
         Schema::create('visitantes_visitas', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('id_socio');
+            $table->integer('visitas');
             $table->timestamps();
         });
     }
