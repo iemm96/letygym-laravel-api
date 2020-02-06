@@ -29,7 +29,7 @@ class AsistenciaController extends Controller
         if($result) {
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
-                $item->fechaHora = Carbon::parse($item->fechaHora)->format('m/d/Y H:i');
+                $item->fechaHora = Carbon::parse($item->fechaHora)->format('d/m/Y H:i');
             }
         }
 

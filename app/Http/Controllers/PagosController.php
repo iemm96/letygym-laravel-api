@@ -34,9 +34,10 @@ class PagosController extends Controller
 
                 $fechaHora = Carbon::parse($item->fechaHora);
 
-                $item->fechaHora = $fechaHora->format('m/d/Y H:m:i');
+                $item->fechaHora = $fechaHora->format('d/m/Y H:i:s');
             }
         }
+
         return $this->respond('done', $result);
     }
 

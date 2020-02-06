@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Membresias;
 use App\SociosMembresias;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,19 +14,19 @@ class SociosMembresiasController extends Controller
     const TABLE = 'socios_membresias AS sm';
     use RestActions;
 
+
     public function getRecords() {
         setlocale(LC_TIME, 'es_ES');
         Carbon::setLocale('es');
+        $m = self::MODEL;
+        $membresiasModel = 'App\Membresias';
 
-        $result = DB::table(self::TABLE)
-            ->join('socios AS s','sm.id_socio', '=','s.id')
-            ->join('membresias AS m','sm.id_membresia', '=','m.id')
+        //Get Socios
+        $result = DB::table('socios AS s')
             ->select(
                 DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
-                'sm.id',
-                'm.membresia',
-                'sm.bActiva',
-                'sm.fecha_fin'
+                's.id',
+                's.nombre'
             )
             ->where('s.bVisitante','=','0')
             ->get()->toArray();
@@ -34,17 +35,22 @@ class SociosMembresiasController extends Controller
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
 
-                $fechaHora = Carbon::parse($item->fecha_fin);
+                $membresia = $m::where('id_socio',$item->id)->first();
 
-                $item->fecha_fin = $fechaHora->format('d/m/Y');
-
-                if($item->bActiva) {
-                    $item->bActiva = 'Activa';
+                if(is_null($membresia->id_membresia)) {
+                    $item->membresia = 'Sin membresía';
+                    $item->bActiva = 'Inactiva';
+                    $item->fecha_fin  = 'N/A';
                 }else{
-                    $item->bActiva = 'Caducada';
+                    $infoMembresia = $membresiasModel::find($membresia->id_membresia);
+                    $item->membresia = $infoMembresia['membresia'];
+                    $item->bActiva = $membresia->bActiva ? 'Activa' : 'Caducada';
+                    $fechaHora = Carbon::parse($membresia->fecha_fin);
+                    $item->fecha_fin = $fechaHora->format('d/m/Y');
                 }
             }
         }
+
         return $this->respond('done', $result);
     }
 
