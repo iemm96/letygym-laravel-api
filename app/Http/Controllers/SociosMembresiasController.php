@@ -14,6 +14,44 @@ class SociosMembresiasController extends Controller
     const TABLE = 'socios_membresias AS sm';
     use RestActions;
 
+    public function getRecord() {
+        setlocale(LC_TIME, 'es_ES');
+        Carbon::setLocale('es');
+        $m = self::MODEL;
+        $membresiasModel = 'App\Membresias';
+
+        //Get Socios
+        $result = DB::table('socios AS s')
+            ->select(
+                DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
+                's.id',
+                's.nombre'
+            )
+            ->where('s.bVisitante','=','0')
+            ->get()->toArray();
+
+        if($result) {
+            //iterate results to convert datetime to human
+            foreach ($result as &$item) {
+
+                $membresia = $m::where('id_socio',$item->id)->first();
+
+                if(is_null($membresia->id_membresia)) {
+                    $item->membresia = 'Sin membresía';
+                    $item->bActiva = 'Inactiva';
+                    $item->fecha_fin  = 'N/A';
+                }else{
+                    $infoMembresia = $membresiasModel::find($membresia->id_membresia);
+                    $item->membresia = $infoMembresia['membresia'];
+                    $item->bActiva = $membresia->bActiva ? 'Activa' : 'Caducada';
+                    $fechaHora = Carbon::parse($membresia->fecha_fin);
+                    $item->fecha_fin = $fechaHora->format('d/m/Y');
+                }
+            }
+        }
+
+        return $this->respond('done', $result);
+    }
 
     public function getRecords() {
         setlocale(LC_TIME, 'es_ES');
@@ -179,15 +217,15 @@ class SociosMembresiasController extends Controller
                 break;
             }
             case 2: {
-                $endDate = Carbon::parse($date->addWeeks(3))->format('Y-m-d');
-                break;
-            }
-            case 3: {
                 $endDate = Carbon::parse($date->addMonth())->format('Y-m-d');
                 break;
             }
+            case 3: {
+                $endDate = Carbon::parse($date->addMonths(2))->format('Y-m-d');
+                break;
+            }
             case 4: {
-                $endDate = Carbon::parse($date->addYear())->format('Y-m-d');
+                $endDate = Carbon::parse($date->addMonths(3))->format('Y-m-d');
                 break;
             }
         }

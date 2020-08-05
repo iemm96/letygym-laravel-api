@@ -43,4 +43,52 @@ class SociosController extends Controller
 
         return $this->respond('created', $m::create($datosSocioMembresia));
     }
+
+    public function updateRecord(Request $request, $id)
+    {
+        $m = self::MODEL;
+        $model = $m::find($id);
+
+        if(is_null($model)){
+            return $this->respond('not_found');
+        }
+
+        $datosSocio = array(
+            'nombre' => $request->get('nombre') ? $request->get('nombre') : $model->nombre,
+            'apellidoPaterno' => $request->get('apellidoPaterno') ? $request->get('apellidoPaterno') : $model->apellidoPaterno,
+            'apellidoMaterno' => $request->get('apellidoMaterno') ? $request->get('apellidoMaterno') : $model->apellidoMaterno,
+        );
+
+        $model->update($datosSocio);
+
+        $m = 'App\SociosMembresias';
+        $membresia = $m::where('id_socio',$id)->first();
+
+        $datosSocioMembresia = array(
+            'id' => $membresia->id,
+            'id_socio' => $membresia->id_socio,
+            'id_membresia' => $request->get('id_membresia') ? $request->get('id_membresia') : $membresia->id_membresia,
+            'bActiva' => $request->get('bActiva') ? $request->get('bActiva') : $membresia->bActiva,
+            'fecha_inicio' => $request->get('fecha_inicio') ? $request->get('fecha_inicio') : $membresia->fecha_inicio,
+            'fecha_fin' => $request->get('fecha_fin') ? $request->get('fecha_fin') : $membresia->fecha_fin
+        );
+
+        //Format Time
+        $aTimeStart = explode('T',$datosSocioMembresia['fecha_inicio']);
+
+        if($aTimeStart) {
+            $datosSocioMembresia['fecha_inicio'] = $aTimeStart[0];
+        }
+
+        $aTimeEnd = explode('T',$datosSocioMembresia['fecha_fin']);
+
+        if($aTimeEnd) {
+            $datosSocioMembresia['fecha_fin'] = $aTimeEnd[0];
+        }
+
+        $membresia->update($datosSocioMembresia);
+
+        return $this->respond('done', $model);
+    }
+
 }

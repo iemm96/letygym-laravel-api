@@ -24,9 +24,11 @@ Route::get('/pagosSocios','SociosMembresiasController@getRecords');
 Route::post('/pagosSocios','PagosController@storeRecord');
 
 Route::post('/socio','SociosController@storeRecord');
+Route::put('/socio/{id}','SociosController@updateRecord');
 
 Route::get('/compruebaRenovaciones','SociosMembresiasController@getRenovaciones');
 Route::get('/sociosMembresias','SociosMembresiasController@getRecords');
+Route::get('/socioMembresias/{id}','SociosMembresiasController@getRecord');
 Route::get('/sociosyvisitantes','SociosMembresiasController@getSociosyVisitantes');
 Route::get('/socioMembresia/{id}','SociosMembresiasController@getSocioMembresiaById');
 Route::put('/socioMembresia/{id}','SociosMembresiasController@updateRecord');
