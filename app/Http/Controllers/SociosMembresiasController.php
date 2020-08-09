@@ -73,17 +73,29 @@ class SociosMembresiasController extends Controller
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
 
+
+
                 $membresia = $m::where('id_socio',$item->id)->first();
+
+                $oDateTimeNow = new \DateTime();
+                $oDateTimeEnd = new \DateTime($membresia->fecha_fin);
 
                 if(is_null($membresia->id_membresia)) {
                     $item->membresia = 'Sin membresía';
                     $item->bActiva = 'Inactiva';
                     $item->fecha_fin  = 'N/A';
+
                 }else{
                     $infoMembresia = $membresiasModel::find($membresia->id_membresia);
                     $item->membresia = $infoMembresia['membresia'];
                     $item->bActiva = $membresia->bActiva ? 'Activa' : 'Caducada';
                     $fechaHora = Carbon::parse($membresia->fecha_fin);
+
+                    //Si la fecha actual es mayor a la fecha de fin se toma como membresía inactiva
+                    if($oDateTimeNow > $oDateTimeEnd) {
+                        $item->bActiva = 'Caducada';
+                    }
+
                     $item->fecha_fin = $fechaHora->format('d/m/Y');
                 }
             }
@@ -210,35 +222,17 @@ class SociosMembresiasController extends Controller
         $startDate = Carbon::parse($date)->format('Y-m-d');
         $nowDateTime = Carbon::parse($date)->format('Y-m-d H:i');
 
-        //Add time period based on $idMembresia
-        switch ($membresia->id) {
-            case 1: {
-                $endDate = Carbon::parse($date->addWeek())->format('Y-m-d');
-                break;
-            }
-            case 2: {
-                $endDate = Carbon::parse($date->addMonth())->format('Y-m-d');
-                break;
-            }
-            case 3: {
-                $endDate = Carbon::parse($date->addMonths(2))->format('Y-m-d');
-                break;
-            }
-            case 4: {
-                $endDate = Carbon::parse($date->addMonths(3))->format('Y-m-d');
-                break;
-            }
-        }
-
         $datosMembresia = array(
             'id_membresia' => $membresia->id,
             'fecha_inicio' => $startDate,
             'bActiva' => '1',
+            'diasProrroga' => $request->get('diasProrroga') ? $request->get('diasProrroga') : '0',
             'bIntentaRenovar' => '0'
         );
 
-        if(isset($endDate)) {
-            $datosMembresia['fecha_fin'] = $endDate;
+        //if fechaSigCobro exists
+        if($request->get('fechaSigCobro')) {
+            $datosMembresia['fecha_fin'] = $request->get('fechaSigCobro');
         }
 
         //Update Membership

@@ -49,9 +49,7 @@ Route::resource('membresias','MembresiasController');
 Route::resource('pagos','PagosController');
 Route::resource('productos','ProductosController');
 Route::resource('socios','SociosController');
-//Route::resource('sociosMembresias','SociosMembresiasController');
 Route::resource('statusSocios','StatusSociosController');
 Route::resource('tiposMembresias','TiposMembresiasController');
 Route::resource('ventas','VentasController');
-//Route::resource('visitantesVisitas','VisitantesVisitasController');
 

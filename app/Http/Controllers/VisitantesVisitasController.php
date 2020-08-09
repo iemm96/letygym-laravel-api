@@ -18,6 +18,7 @@ class VisitantesVisitasController extends Controller
     use RestActions;
 
     public function deleteRecord($id) {
+
         $m = self::MODEL;
         $modelSocio = 'App\Socios';
 
@@ -31,7 +32,7 @@ class VisitantesVisitasController extends Controller
         //Destroy record
         $m::destroy($id);
 
-        return $this->respond('removed');
+        return $this->respond('removed','El registro se eliminó correctamente');
     }
 
     public function getRecords() {
