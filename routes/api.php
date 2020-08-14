@@ -21,6 +21,12 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/asistenciasSocios','AsistenciaController@getRecords');
 
 Route::get('/pagosSocios','SociosMembresiasController@getRecords');
+Route::get('/getTurnoActual','AppStatusController@getTurnoActual');
+Route::put('/updateTurnoActual/{turno}','AppStatusController@updateTurnoActual');
+Route::get('/ingresos/getRecords/{turno}/{fecha?}','IngresosController@getRecords');
+Route::get('/ingresos/getTotal/{fecha?}','IngresosController@getTotal');
+Route::get('/egresos/getTotal/{fecha?}','EgresosController@getTotal');
+Route::get('/egresos/getRecords/{turno}/{fecha?}','EgresosController@getRecords');
 Route::post('/pagosSocios','PagosController@storeRecord');
 
 Route::post('/socio','SociosController@storeRecord');
@@ -52,4 +58,6 @@ Route::resource('socios','SociosController');
 Route::resource('statusSocios','StatusSociosController');
 Route::resource('tiposMembresias','TiposMembresiasController');
 Route::resource('ventas','VentasController');
+Route::resource('ingresos','IngresosController');
+Route::resource('egresos','EgresosController');
 
