@@ -206,6 +206,21 @@ class SociosMembresiasController extends Controller
         $m = self::MODEL;
         $modelMembresia = 'App\Membresias';
         $modelPagos = 'App\Pagos';
+        $modelIngresos = 'App\Ingresos';
+        $modelAppStatus = 'App\AppStatus';
+        $modelSocios = 'App\Socios';
+
+        //Se obtiene el turno actual
+        $resultAppStatus = $modelAppStatus::find(1);
+
+        //Si el turno actual no es válido se regresa error
+        if($resultAppStatus->turnoActual == 3) {
+            $turnoActual = 2;
+        }elseif ($resultAppStatus->turnoActual == 1) {
+            $turnoActual = 1;
+        }else{
+            return $this->respond('not_valid', array('msg' => 'Error no se ha iniciado un turno'));
+        }
 
         $this->validate($request, $m::$rules);
         $model = $m::find($id);
@@ -247,6 +262,21 @@ class SociosMembresiasController extends Controller
 
         //Create Pago Record
         $modelPagos::create($datosPago);
+
+        if(!$socio = $modelSocios::find($model->id_socio)) {
+            return $this->respond('done', $model);
+        }
+
+        $datosIngreso = array(
+            'turno' => $turnoActual,
+            'tipo_pago' => '1',
+            'concepto' => "Pago Membresía {$membresia->membresia} de {$socio->nombre} {$socio->apellidoPaterno} {$socio->apellidoMaterno}",
+            'cantidad' => $request->get('pago'),
+            'fechaHora' => $nowDateTime
+        );
+
+        //Create Ingreso Record
+        $modelIngresos::create($datosIngreso);
 
         return $this->respond('done', $model);
     }
