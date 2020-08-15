@@ -29,6 +29,8 @@ Route::get('/egresos/getTotal/{fecha?}','EgresosController@getTotal');
 Route::get('/egresos/getRecords/{turno}/{fecha?}','EgresosController@getRecords');
 Route::post('/pagosSocios','PagosController@storeRecord');
 
+Route::post('productos/addRecord','ProductosController@addRecord');
+
 Route::post('/socio','SociosController@storeRecord');
 Route::put('/socio/{id}','SociosController@updateRecord');
 
