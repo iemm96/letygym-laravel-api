@@ -21,10 +21,13 @@ class AsistenciaController extends Controller
             ->join('socios AS s','a.id_socio', '=','s.id')
             ->select(
                 DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
+                'a.id',
                 's.nombre',
                 'a.fechaHora'
             )
-            ->get()->toArray();
+            ->orderBy('fechaHora', 'desc')
+            ->get()
+            ->toArray();
 
         if($result) {
             //iterate results to convert datetime to human
@@ -35,4 +38,5 @@ class AsistenciaController extends Controller
 
         return $this->respond('done', $result);
     }
+
 }
