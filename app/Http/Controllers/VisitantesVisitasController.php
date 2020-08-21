@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\AppStatus;
+use App\Transacciones;
 use App\VisitantesVisitas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -56,6 +58,9 @@ class VisitantesVisitasController extends Controller
         $m = self::MODEL;
 
         $modelSocio = 'App\Socios';
+        //Get current datetime
+        $date = Carbon::now('America/Mexico_City');
+        $nowDateTime = Carbon::parse($date)->format('Y-m-d H:i');
 
         $arraySocio = array(
             'nombre' => $request->get('nombre'),
@@ -71,6 +76,26 @@ class VisitantesVisitasController extends Controller
             'id_socio' => $idSocio,
             'visitas' => 0,
         );
+
+        $resultAppStatus = AppStatus::find(1);
+
+        //Si el turno actual no es válido se regresa error
+        if($resultAppStatus->turnoActual == 3) {
+            $turnoActual = 2;
+        }elseif ($resultAppStatus->turnoActual == 1) {
+            $turnoActual = 1;
+        }else{
+            return $this->respond('not_valid', array('msg' => 'Error no se ha iniciado un turno'));
+        }
+
+        //Se agrega el ingreso de la visita
+        Transacciones::create([
+            'tipo' => 1,
+            'turno' => $turnoActual,
+            'concepto' => "Pago visita de {$request->get('nombre')}",
+            'cantidad' => $resultAppStatus->costo_visita,
+            'fechaHora' => $nowDateTime
+        ]);
 
         return $this->respond('created', $m::create($arrayRecord));
     }
