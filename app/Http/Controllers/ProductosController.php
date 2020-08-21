@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Productos;
+use App\Transacciones;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,6 @@ class ProductosController extends Controller
     public function addRecord(Request $request) {
 
         $model = self::MODEL;
-        $modelEgresos = 'App\Egresos';
         $modelAppStatus = 'App\AppStatus';
 
         //Get current datetime
@@ -35,18 +35,18 @@ class ProductosController extends Controller
             return $this->respond('not_valid', array('msg' => 'Error no se ha iniciado un turno'));
         }
 
-        $datosEgreso = array(
-            'turno' => $turnoActual,
-            'tipo_pago' => '1',
-            'concepto' => "Compra de {$request->get('producto')}",
-            'cantidad' => $request->get('costo'),
-            'fechaHora' => $nowDateTime
-        );
+        //Si el producto es nuevo se agrega como gasto o egreso
+        if($request->get('tipoProducto') == 2) {
+            Transacciones::create([
+                'tipo' => 2,
+                'turno' => $turnoActual,
+                'concepto' => "Compra de {$request->get('producto')}",
+                'cantidad' => $request->get('costo'),
+                'fechaHora' => $nowDateTime
+            ]);
+        }
 
-        //Create Egreso Record
-        $modelEgresos::create($datosEgreso);
-
-        return $this->respond('done',$datosEgreso);
+        return $this->respond('done');
     }
 
     public function getRecords() {
