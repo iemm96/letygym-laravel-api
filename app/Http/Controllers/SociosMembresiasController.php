@@ -77,6 +77,10 @@ class SociosMembresiasController extends Controller
 
                 $membresia = $m::where('id_socio',$item->id)->first();
 
+                if(!$membresia) {
+                    return $this->respond('conflict');
+                }
+
                 $oDateTimeNow = new \DateTime();
                 $oDateTimeEnd = new \DateTime($membresia->fecha_fin);
 
@@ -128,6 +132,33 @@ class SociosMembresiasController extends Controller
         }
     }
 
+    public function hasMembresiaActiva($id) {
+        setlocale(LC_TIME, 'es_ES');
+        Carbon::setLocale('es');
+
+        $m = self::MODEL;
+
+        $model = $m::find($id);
+
+        if(is_null($model)){
+            return $this->respond('not_found');
+        }
+
+        //Get current datetime
+        $date = Carbon::now('America/Mexico_City');
+
+        //create datetime
+        $dateEnd = Carbon::createFromFormat('Y-m-d', $model->fecha_fin);
+
+        //Validate Membership
+        if($date->greaterThan($dateEnd)) {
+            $model->bActiva = 0;
+            $model->save();
+        }
+
+        return $this->respond('done',$model);
+    }
+
     public function getSocioMembresiaById($id) {
         setlocale(LC_TIME, 'es_ES');
         Carbon::setLocale('es');
@@ -148,7 +179,6 @@ class SociosMembresiasController extends Controller
             'id_socio' => $model->id_socio,
             'fechaHora' => Carbon::parse($date)->format('Y-m-d H:i:s')
         );
-
 
         //create datetime
         $dateEnd = Carbon::createFromFormat('Y-m-d', $model->fecha_fin);
