@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ventas;
+use App\Transacciones;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -56,9 +57,12 @@ class VentasController extends Controller
             //iterate results to convert datetime to human and format total
             foreach ($result as &$item) {
 
-                $fechaHora = Carbon::parse($item->fechaHora);
+                $fecha = Carbon::parse($item->fechaHora);
 
-                $item->fechaHora = $fechaHora->format('m/d/Y H:i');
+                //Se parsea fecha y hora a humano
+                $fecha->format("F");
+                $item->fechaHora = $fecha->formatLocalized('%d/%B/%Y %H:%M') . ' Hrs.';
+
                 $item->total = '$' . $item->total;
             }
         }
@@ -79,6 +83,7 @@ class VentasController extends Controller
         );
 
         $productos = 'App\Productos';
+
         //Get product
         $result = $productos::find($idProducto);
 
@@ -100,6 +105,15 @@ class VentasController extends Controller
 
         //Update product quantity
         $result->save();
+
+        //save transaction as earning
+        Transacciones::create([
+            'tipo' => 1,
+            'turno' => $request->get('turno'),
+            'concepto' => "Venta de {$request->get('cantidad')} {$result->producto}",
+            'cantidad' => $request->get('total'),
+            'fechaHora' => $nowDateTime->toDateTimeString()
+        ]);
 
         return $this->respond('created', $m::create($arrayRecord));
     }
