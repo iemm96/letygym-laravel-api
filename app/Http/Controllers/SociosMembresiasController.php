@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Membresias;
-use App\SociosMembresias;
+use App\Socios;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,43 +13,23 @@ class SociosMembresiasController extends Controller
     const TABLE = 'socios_membresias AS sm';
     use RestActions;
 
-    public function getRecord() {
+    public function getRecord($id) {
         setlocale(LC_TIME, 'es_ES');
         Carbon::setLocale('es');
         $m = self::MODEL;
-        $membresiasModel = 'App\Membresias';
 
-        //Get Socios
-        $result = DB::table('socios AS s')
-            ->select(
-                DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
-                's.id',
-                's.nombre'
-            )
-            ->where('s.bVisitante','=','0')
-            ->get()->toArray();
+        $membresia = $m::find($id);
 
-        if($result) {
-            //iterate results to convert datetime to human
-            foreach ($result as &$item) {
+        $socio = Socios::where('id',$membresia->id_socio)->first();
 
-                $membresia = $m::where('id_socio',$item->id)->first();
-
-                if(is_null($membresia->id_membresia)) {
-                    $item->membresia = 'Sin membresía';
-                    $item->bActiva = 'Inactiva';
-                    $item->fecha_fin  = 'N/A';
-                }else{
-                    $infoMembresia = $membresiasModel::find($membresia->id_membresia);
-                    $item->membresia = $infoMembresia['membresia'];
-                    $item->bActiva = $membresia->bActiva ? 'Activa' : 'Caducada';
-                    $fechaHora = Carbon::parse($membresia->fecha_fin);
-                    $item->fecha_fin = $fechaHora->format('d/m/Y');
-                }
-            }
+        if($socio and $membresia) {
+            $socio->bActiva = $membresia->bActiva;
+            $socio->fecha_inicio = $membresia->fecha_inicio;
+            $socio->fecha_fin = $membresia->fecha_fin;
+            $socio->id_membresia = $membresia->id_membresia;
         }
 
-        return $this->respond('done', $result);
+        return $this->respond('done', $socio);
     }
 
     public function getRecords() {
@@ -72,13 +51,11 @@ class SociosMembresiasController extends Controller
         if($result) {
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
-
-
-
+                
                 $membresia = $m::where('id_socio',$item->id)->first();
 
                 if(!$membresia) {
-                    return $this->respond('conflict');
+                    return $this->respond('conflict',array('msg' => "Error al encontrar la membresía del socio {$item->id}"));
                 }
 
                 $oDateTimeNow = new \DateTime();
