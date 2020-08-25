@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Asistencia;
 use App\Socios;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -51,7 +52,7 @@ class SociosMembresiasController extends Controller
         if($result) {
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
-                
+
                 $membresia = $m::where('id_socio',$item->id)->first();
 
                 if(!$membresia) {
@@ -113,27 +114,32 @@ class SociosMembresiasController extends Controller
         setlocale(LC_TIME, 'es_ES');
         Carbon::setLocale('es');
 
-        $m = self::MODEL;
-
-        $model = $m::find($id);
+        $model = Socios::find($id);
 
         if(is_null($model)){
-            return $this->respond('not_found');
+            return $this->respond('not_found',array('msg' => 'socio no encontrado'));
+        }
+
+        $m = self::MODEL;
+        $membresia = $m::where('id_socio','=',$model->id)->first();
+
+        if(is_null($membresia)) {
+            return $this->respond('not_found', array('msg' => 'membresía no encontrada'));
         }
 
         //Get current datetime
         $date = Carbon::now('America/Mexico_City');
 
         //create datetime
-        $dateEnd = Carbon::createFromFormat('Y-m-d', $model->fecha_fin);
+        $dateEnd = Carbon::createFromFormat('Y-m-d', $membresia->fecha_fin);
 
         //Validate Membership
         if($date->greaterThan($dateEnd)) {
-            $model->bActiva = 0;
-            $model->save();
+            $membresia->bActiva = 0;
+            $membresia->save();
         }
 
-        return $this->respond('done',$model);
+        return $this->respond('done',$membresia);
     }
 
     public function getSocioMembresiaById($id) {
@@ -230,13 +236,14 @@ class SociosMembresiasController extends Controller
         }
 
         $this->validate($request, $m::$rules);
-        $model = $m::find($id);
-        if(is_null($model)){
-            return $this->respond('not_found');
+        $socio = Socios::find($id);
+
+        if(is_null($socio)){
+            return $this->respond('not_found',array('msg' => 'socio no encontrado'));
         }
 
-        if (is_null($membresia = $modelMembresia::find($request->get('id_membresia')))) {
-            return $this->respond('not_found');
+        if (is_null($membresia = $m::where('id_socio','=',$socio->id)->first())) {
+            return $this->respond('not_found','membresía no encontrada');
         }
 
         //Get current datetime
@@ -245,7 +252,7 @@ class SociosMembresiasController extends Controller
         $nowDateTime = Carbon::parse($date)->format('Y-m-d H:i');
 
         $datosMembresia = array(
-            'id_membresia' => $membresia->id,
+            'id_membresia' => $request->get('id_membresia'),
             'fecha_inicio' => $startDate,
             'bActiva' => '1',
             'diasProrroga' => $request->get('diasProrroga') ? $request->get('diasProrroga') : '0',
@@ -258,10 +265,10 @@ class SociosMembresiasController extends Controller
         }
 
         //Update Membership
-        $model->update($datosMembresia);
+        $membresia->update($datosMembresia);
 
         $datosPago = array(
-            'id_socio' => $model->id_socio,
+            'id_socio' => $membresia->id_socio,
             'concepto' => 'Pago Membresía "' . $membresia->membresia . '"',
             'monto' => $request->get('pago'),
             'fechaHora' => $nowDateTime
@@ -270,8 +277,8 @@ class SociosMembresiasController extends Controller
         //Create Pago Record
         $modelPagos::create($datosPago);
 
-        if(!$socio = $modelSocios::find($model->id_socio)) {
-            return $this->respond('done', $model);
+        if(!$socio = $modelSocios::find($membresia->id_socio)) {
+            return $this->respond('done', $membresia);
         }
 
         $datosIngreso = array(
@@ -285,7 +292,14 @@ class SociosMembresiasController extends Controller
         //Create Ingreso Record
         $modelIngresos::create($datosIngreso);
 
-        return $this->respond('done', $model);
+        //Se registra la asistencia
+        Asistencia::create([
+            'id_socio' => $socio->id,
+            'fechaHora' => $nowDateTime,
+            'turno' => $turnoActual
+        ]);
+
+        return $this->respond('done', $membresia);
     }
 
 }
