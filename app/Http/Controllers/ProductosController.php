@@ -31,7 +31,7 @@ class ProductosController extends Controller
             $turnoActual = 2;
         }elseif ($resultAppStatus->turnoActual == 1) {
             $turnoActual = 1;
-        }else{
+        }elseif($request->get('tipoProducto') == 2){
             return $this->respond('not_valid', array('msg' => 'Error no se ha iniciado un turno'));
         }
 
