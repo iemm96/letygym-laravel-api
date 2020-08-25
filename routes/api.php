@@ -34,6 +34,7 @@ Route::post('productos/addRecord','ProductosController@addRecord');
 
 Route::post('/socio','SociosController@storeRecord');
 Route::put('/socio/{id}','SociosController@updateRecord');
+Route::get('/socios/getRecords','SociosController@getRecords');
 Route::post('/ventasProductos','VentasController@storeRecord');
 
 Route::get('/compruebaRenovaciones','SociosMembresiasController@getRenovaciones');

@@ -12,6 +12,14 @@ class SociosController extends Controller
     const MODEL = 'App\Socios';
     use RestActions;
 
+    public function getRecords() {
+        $m = self::MODEL;
+        if(!$result = $m::where('bVisitante','=','0')->get()) {
+            return $this->respond('not_found');
+        }
+
+        return $this->respond('done',$result);
+    }
     public function storeRecord(Request $request){
         $m = self::MODEL;
         $this->validate($request, $m::$rules);
