@@ -20,6 +20,7 @@ class AsistenciasInstructoresController extends Controller
             ->select(
                 DB::raw("CONCAT(i.nombre,' ',i.apellidoPaterno,' ',i.apellidoMaterno) AS nombreCompleto"),
                 'i.nombre',
+                'a.id',
                 'a.fechaHora',
                 'a.turno'
             )
