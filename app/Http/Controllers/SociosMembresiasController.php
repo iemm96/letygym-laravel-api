@@ -19,7 +19,7 @@ class SociosMembresiasController extends Controller
         Carbon::setLocale('es');
         $m = self::MODEL;
 
-        $membresia = $m::find($id);
+        $membresia = $m::where('id_socio',$id)->first();
 
         $socio = Socios::where('id',$membresia->id_socio)->first();
 
@@ -43,7 +43,7 @@ class SociosMembresiasController extends Controller
         $result = DB::table('socios AS s')
             ->select(
                 DB::raw("CONCAT(s.nombre,' ',s.apellidoPaterno,' ',s.apellidoMaterno) AS nombreCompleto"),
-                's.id',
+                's.id AS id_socio',
                 's.nombre'
             )
             ->where('s.bVisitante','=','0')
@@ -53,7 +53,7 @@ class SociosMembresiasController extends Controller
             //iterate results to convert datetime to human
             foreach ($result as &$item) {
 
-                $membresia = $m::where('id_socio',$item->id)->first();
+                $membresia = $m::where('id_socio',$item->id_socio)->first();
 
                 if(!$membresia) {
                     return $this->respond('conflict',array('msg' => "Error al encontrar la membresía del socio {$item->id}"));
