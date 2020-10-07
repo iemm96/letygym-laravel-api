@@ -100,7 +100,7 @@ class VentasController extends Controller
         $result->cantidad = $result->cantidad - $cantidad;
 
         if($result->cantidad < 0) {
-            return $this->respond('cantidad de producto insuficiente');
+            return response()->json(['error' => 'No hay productos suficientes para completar la venta, intente agregar más productos desde el administrador de productos'], 200);
         }
 
         //Update product quantity
